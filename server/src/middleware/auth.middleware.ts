@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import jwt, { TokenExpiredError, type JwtPayload } from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
 interface DecodedPayload extends JwtPayload {
   userId: string;
@@ -32,7 +32,7 @@ export const protectRoute = (
       next();
     } catch (error) {
       const message =
-        error instanceof TokenExpiredError
+        error instanceof jwt.TokenExpiredError
           ? "Unauthorized - Token expired"
           : "Unauthorized - Invalid token";
       res.status(401).json({ message });

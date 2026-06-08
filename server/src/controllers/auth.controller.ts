@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma/client.ts";
 import { generateTokens } from "../lib/util.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 
@@ -73,7 +73,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password!);
     if (!isMatch) {
       res.status(400).json({ message: "Invalid Credentials" });
       return;
