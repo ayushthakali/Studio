@@ -5,8 +5,8 @@ interface DecodedPayload extends JwtPayload {
   userId: string;
 }
 
-interface AuthRequest extends Request {
-  user?: any;
+export interface AuthRequest extends Request {
+  userId?: any;
 }
 
 export const protectRoute = (
@@ -15,25 +15,27 @@ export const protectRoute = (
   next: NextFunction,
 ): void => {
   try {
-    const token = req.cookies?.jwt;
-    if (!token) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ message: "Unauthorized - No token provided!" });
       return;
     }
+
+    const token = authHeader.split(" ")[1] as string;
 
     const { JWT_SECRET } = process.env;
     if (!JWT_SECRET) throw new Error("JWT_SECRET is not configured.");
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as DecodedPayload;
-      req.user = decoded.userId;
+      req.userId = decoded.userId;
       next();
     } catch (error) {
       const message =
         error instanceof TokenExpiredError
           ? "Unauthorized - Token expired"
           : "Unauthorized - Invalid token";
-      res.json(401).json({ message });
+      res.status(401).json({ message });
       return;
     }
   } catch (error) {
