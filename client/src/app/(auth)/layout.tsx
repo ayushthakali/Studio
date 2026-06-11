@@ -8,7 +8,7 @@ export default function AuthLayout({
   return (
     <div className="flex w-full min-h-screen justify-center items-center">
       <div className="w-full max-w-md p-6 rounded-2xl shadow-2xl shadow-blue-950">
-        <div className="flex justify-center my-4">
+        <div className="flex justify-center my-3">
           <Image
             src="/logoinwebp.webp"
             alt="logo"

@@ -6,7 +6,9 @@ import { useLoginMutation } from "@/features/auth/authApi";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import Link from "next/link";
 
 function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,14 +20,14 @@ function Login() {
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
+
     try {
       const res = await login(formData).unwrap();
       dispatch(setCredentials(res));
       toast.success("Logged in succesfully.");
       router.push("/");
     } catch (error) {
-      const
-      toast.error(error?.data?.message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -46,6 +48,7 @@ function Login() {
           </label>
           <input
             type="email"
+            required
             placeholder="Enter your email address"
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
@@ -60,6 +63,7 @@ function Login() {
           </label>
           <div className="relative">
             <input
+              required
               type={!showPassword ? "password" : "text"}
               placeholder="Enter your password"
               onChange={(e) =>
@@ -94,6 +98,18 @@ function Login() {
           )}
         </button>
       </form>
+
+      <div className="flex justify-center items-center gap-1">
+        <p className="text-sm text-gray-500 tracking-tight">
+          Don&apos;t have an account?
+        </p>
+        <Link
+          href="/signup"
+          className="text-sm text-studio font-medium hover:-translate-y-0.5 transition-transform ease-in duration-150"
+        >
+          Sign Up
+        </Link>
+      </div>
     </>
   );
 }

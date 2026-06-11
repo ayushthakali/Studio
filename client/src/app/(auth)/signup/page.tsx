@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { EyeIcon, EyeOffIcon, LoaderIcon } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
+import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import Link from "next/link";
 import { useSignupMutation } from "@/features/auth/authApi";
 
 export default function RegisterPage() {
@@ -13,102 +16,120 @@ export default function RegisterPage() {
     email: "",
     password: "",
   });
-  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [registerUser, { isLoading }] = useSignupMutation();
-  const dispatch = useDispatch();
+  const [signup, { isLoading }] = useSignupMutation();
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg("");
 
     try {
-      const result = await registerUser(formData).unwrap();
-      dispatch(setCredentials(result));
-      router.push("/dashboard"); // Directs to workspace hub once registered
-    } catch (err: any) {
-      setErrorMsg(
-        err?.data?.message || "Something went wrong during registration.",
-      );
+      const res = await signup({
+        ...formData,
+        name: formData.name.trim(),
+      }).unwrap();
+      dispatch(setCredentials(res));
+      toast.success("Account created successfully.");
+      router.push("/");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
   return (
     <>
-      <div className="space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Create an account</h2>
-        <p className="text-sm text-slate-400">
+      <div className="text-center tracking-tight">
+        <h2 className="text-lg font-semibold">Create an account</h2>
+        <p className="text-sm font-extralight text-gray-500 mt-1">
           Get started with your collaborative workspace today.
         </p>
       </div>
 
-      {errorMsg && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg">
-          {errorMsg}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form */}
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
             Full Name
           </label>
           <input
             type="text"
             required
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            placeholder="John Doe"
-            value={formData.name}
+            placeholder="Enter your full name"
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.name}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none placeholder:text-xs placeholder:text-gray-400 focus:border-studio transition-colors"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
             Email Address
           </label>
           <input
             type="email"
             required
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            placeholder="name@company.com"
-            value={formData.email}
+            placeholder="Enter your email address"
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
+            value={formData.email}
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none placeholder:text-xs placeholder:text-gray-400 focus:border-studio transition-colors"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
             Password
           </label>
-          <input
-            type="password"
-            required
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-          />
+          <div className="relative">
+            <input
+              required
+              type={!showPassword ? "password" : "text"}
+              placeholder="Enter your password"
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              value={formData.password}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:border-studio transition-colors placeholder:text-xs placeholder:text-gray-400 pr-12"
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-2.5"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {!showPassword ? (
+                <EyeIcon className=" text-gray-500 size-5" />
+              ) : (
+                <EyeOffIcon className=" text-gray-500 size-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-medium py-2.5 rounded-lg text-sm transition-colors mt-2"
+          className="w-full bg-black flex items-center justify-center text-gray-200 font-semibold tracking-wide rounded-lg py-2.5 text-xs hover:bg-black/80 disabled:bg-black/80 disabled:cursor-no-drop"
         >
-          {isLoading ? "Creating account..." : "Sign Up"}
+          {!isLoading ? (
+            <span>Sign Up</span>
+          ) : (
+            <LoaderIcon className="size-4 animate-spin" />
+          )}
         </button>
       </form>
 
-      <p className="text-center text-sm text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="text-indigo-400 hover:underline">
-          Sign In
+      <div className="flex justify-center items-center gap-1">
+        <p className="text-sm text-gray-500 tracking-tight">
+          Already have an account?
+        </p>
+        <Link
+          href="/login"
+          className="text-sm text-studio font-medium hover:-translate-y-0.5 transition-transform ease-in duration-150"
+        >
+          Log In
         </Link>
-      </p>
+      </div>
     </>
   );
 }
